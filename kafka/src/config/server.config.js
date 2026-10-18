@@ -1,12 +1,14 @@
-import { kafkaProducerService as kafka} from "./kafka.producer.config"
-import { connectMongo } from "./mongo.config"
+import { kafkaProducerService as kafka} from "./kafka.producer.config.js"
+import { kafkaConsumer } from "./kafka.consumer.config.js"
+import { connectMongo } from "./mongo.config.js"
 
 
-const startServer = async ()=>{
+export const startServer = async ()=>{
     try{
         
         await kafka.connect()
         await kafka.createTopic('post')
+        await kafkaConsumer.connect()
         await connectMongo()
     }catch(err){
         console.log('Failed to start the server', err)

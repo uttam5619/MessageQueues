@@ -1,6 +1,8 @@
-import { Admin, Kafka, logLevel, Consumer } from 'kafkajs'
+import { Kafka, logLevel} from 'kafkajs'
+import {config} from 'dotenv'
+config()
 
-class kafkaProducerConfig {
+class kafkaConsumerConfig {
     kafka
     admin
     consumer
@@ -20,55 +22,38 @@ class kafkaProducerConfig {
     }
 
     async connect(){
-        try{
-            await this.consumer.connect()
-            console.log('Consumer is connected with kafka')
-        }catch(err){
-            console.log(err)
-        }
+        await this.consumer.connect()
+        console.log('Consumer is connected with kafka')
     }
 
     async subscribeToTopic(topic){
-        try{
-            await this.consumer.subscribe({
-                topic,
-                fromBeginning:true
-            })
-        }catch(err){
-            console.log('Error occured while subscribing the topic',err)
-        }
+        await this.consumer.subscribe({
+            topic,
+            fromBeginning:true
+        })
     }
 
     async consumeMessage(callback) {
-        try {
-            await this.consumer.run({
-                eachMessage: async ({ topic, partition, message }) => {
-                    try {
-                        const value = message.value?.toString();
-                        const parsedMessage = JSON.parse(value);
+        await this.consumer.run({
+            eachMessage: async ({ topic, partition, message }) => {
+                const value = message.value?.toString();
+                const parsedMessage = JSON.parse(value);
 
-                        console.log("Message received", {
-                            topic,
-                            partition,
-                            value: parsedMessage
-                        });
+                console.log("Message received", {
+                    topic,
+                    partition,
+                    value: parsedMessage
+                });
 
-                        await callback(parsedMessage);
-                    } catch (err) {
-                        console.error("Error processing message:", err);
-                        throw err;
-                    }
-                }
-            });
-        } catch (err) {
-            console.error("Error starting Kafka consumer:", err)
-        }
+                await callback(parsedMessage);
+            }
+        });
     }
 
 
     async disconnect(){
         try{
-            await this.producer.disconnect()
+            await this.consumer.disconnect()
             await this.admin.disconnect()
             console.log('kafka disconnected')
         }catch(err){
@@ -78,4 +63,4 @@ class kafkaProducerConfig {
 }
 
 
-export default kafkaProducerConfig
+export const kafkaConsumer = new kafkaConsumerConfig()

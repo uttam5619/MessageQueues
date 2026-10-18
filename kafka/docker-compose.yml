@@ -10,7 +10,7 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
 
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9098
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
@@ -28,12 +28,27 @@ services:
     container_name: mongo_messageBroker
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27055:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password123
     volumes:
       - mongodb_data:/data/db
+
+  k6:
+    image: grafana/k6:latest
+    profiles:
+      - load-test
+    environment:
+      TARGET_URL: http://host.docker.internal:3040/kafka/post
+      LOAD_TEST_RATE: ${LOAD_TEST_RATE:-10}
+      LOAD_TEST_DURATION: ${LOAD_TEST_DURATION:-30s}
+      LOAD_TEST_PRE_ALLOCATED_VUS: ${LOAD_TEST_PRE_ALLOCATED_VUS:-10}
+      LOAD_TEST_MAX_VUS: ${LOAD_TEST_MAX_VUS:-100}
+    volumes:
+      - ./src/test.js:/scripts/test.js:ro
+      - ./k6-summary.json:/scripts/k6-summary.json
+    command: run --summary-export /scripts/k6-summary.json /scripts/test.js
 
 volumes:
   kafka_data:

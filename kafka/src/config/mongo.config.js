@@ -3,9 +3,15 @@ import mongoose from 'mongoose'
 
 export const connectMongo = async ()=>{
     try{
-        await mongoose.connect(process.env.MONGODB_CONNECTION_URL)
-        console.log('application server gets sucessfully connected with mongodb')
+        const connectionUrl = process.env.MONGODB_CONNECTION_URL
+        if (!connectionUrl) {
+            throw new Error('MONGODB_CONNECTION_URL is not configured')
+        }
+
+        await mongoose.connect(connectionUrl)
+        console.log('Application server connected to MongoDB')
     }catch(error){
-        console.log('failed to connect with mongodb')
+        console.error('Failed to connect to MongoDB:', error)
+        throw error
     }
 }

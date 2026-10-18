@@ -1,5 +1,6 @@
-import { Admin, Kafka, logLevel, Producer } from 'kafkajs'
-
+import { Kafka, logLevel } from 'kafkajs'
+import {config} from "dotenv"
+config()
 class kafkaProducerConfig {
     kafka
     admin
@@ -18,36 +19,23 @@ class kafkaProducerConfig {
     }
 
     async connect(){
-        try{
-            await this.producer.connect()
-            await this.admin.connect()
-            console.log('producer and admin are connected with kafka')
-        }catch(err){
-            console.log(err)
-        }
+        await this.producer.connect()
+        await this.admin.connect()
+        console.log('producer and admin are connected with kafka')
     }
 
     async createTopic(topic){
-        try{
-            await this.admin.createTopics({
-                topics:[{topic, numPartitions:1}]
-            })
-            console.log('topic created', topic)
-        }catch(err){
-            console.log('Error creating topic',err)
-        }
+        await this.admin.createTopics({
+            topics:[{topic, numPartitions:1}]
+        })
+        console.log('topic created', topic)
     }
 
     async sentToTopic(topic, message){
-        try{
-            await this.producer.send({
-                topic,
-                messages:[{value:message}]
-            })
-            console.log(`${message} added to the topic:${topic}`)
-        }catch(err){
-            console.log(err)
-        }
+        return this.producer.send({
+            topic,
+            messages:[{value:message}]
+        })
     }
 
     async disconnect(){
